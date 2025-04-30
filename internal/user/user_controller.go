@@ -59,7 +59,8 @@ func (uc *UserController) Login(c *gin.Context) {
 		return
 	}
 
-	if _, err := uc.userService.Login(UserRequestLogin); err != nil {
+	userResponse, err := uc.userService.Login(UserRequestLogin)
+	if err != nil {
 		switch {
 		case errors.Is(err, customerrors.ErrNotFound):
 			c.JSON(http.StatusNotFound, customerrors.NotFound(err.Error()))
@@ -75,6 +76,12 @@ func (uc *UserController) Login(c *gin.Context) {
 		}
 	}
 
-	c.Status(http.StatusOK)
+	tokenString, err := uc.userService.GenerateToken(userResponse.ID, userResponse.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, customerrors.InternalServerError())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": tokenString})
 
 }

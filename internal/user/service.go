@@ -2,14 +2,21 @@ package user
 
 import (
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/ericsanto/api_authentication/internal/customerrors"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
 	userRepository *UserRepository
 }
+
+var (
+	JWT_SECRET_KEY = "JWT_SECRET_KEY"
+)
 
 func NewUserService(userRepository *UserRepository) *UserService {
 	return &UserService{userRepository: userRepository}
@@ -34,19 +41,51 @@ func (us *UserService) CreateUserService(userRequest *UserRequest) (*UserRespons
 
 }
 
-func (us *UserService) Login(userRequest UserRequestLogin) (bool, error) {
+func (us *UserService) Login(userRequest UserRequestLogin) (*UserResponse, error) {
 
 	userModel, err := us.userRepository.FindUserByEmail(userRequest.Email)
 	if err != nil {
-		return false, fmt.Errorf("erro: %w", err)
+		return nil, fmt.Errorf("erro: %w", err)
 	}
 
-	fmt.Println(userModel.Password)
+	userResponse := UserResponse{
+		ID:    userModel.ID,
+		Email: userModel.Email,
+		Name:  userModel.Name,
+	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userModel.Password), []byte(userRequest.Password)); err != nil {
-		return false, fmt.Errorf("%w", customerrors.ErrPasswordIncorrect)
+		return nil, fmt.Errorf("%w", customerrors.ErrPasswordIncorrect)
 	}
 
-	return true, nil
+	return &userResponse, nil
+
+}
+
+func (us *UserService) GenerateToken(id uint, email string) (string, error) {
+
+	secret := os.Getenv(JWT_SECRET_KEY)
+
+	encryptEmail, err := bcrypt.GenerateFromPassword([]byte(email), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("erro ao encriptar email")
+	}
+
+	encryptEmailString := string(encryptEmail)
+
+	claims := jwt.MapClaims{
+		"id":    id,
+		"email": encryptEmailString,
+		"exp":   time.Now().Add(time.Hour * 3).Unix(),
+	}
+
+	tokenGenerate := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := tokenGenerate.SignedString([]byte(secret))
+	if err != nil {
+		return "", fmt.Errorf("erro ao gerar token")
+	}
+
+	return tokenString, nil
 
 }
