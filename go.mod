@@ -5,6 +5,7 @@ go 1.24.2
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.26.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	golang.org/x/crypto v0.37.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.26.0
