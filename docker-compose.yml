@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user
+      POSTGRES_DB: user
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - golang-postgres
+
+  golang-app:
+    build: .
+    ports:
+      - "8080:8080"
+    networks:
+      - golang-postgres
+    depends_on:
+      - db
+
+  pg-admin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "teste@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "PgAdmin2019!"
+    ports:
+      - "16543:80"
+    depends_on:
+      - db
+    networks:
+      - golang-postgres
+
+volumes:
+  postgres_data:
+
+networks:
+  golang-postgres:
+    driver: bridge
+
+
