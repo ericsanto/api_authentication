@@ -11,7 +11,7 @@ import (
 
 func ConnectDatabase() error {
 
-	dsn := "host=db user=user password=user dbname=user port=5432 sslmode=disable"
+	dsn := "host=db user=go password=go dbname=go port=5432 sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
