@@ -14,10 +14,6 @@ type UserService struct {
 	userRepository *UserRepository
 }
 
-var (
-	JWT_SECRET_KEY = "JWT_SECRET_KEY"
-)
-
 func NewUserService(userRepository *UserRepository) *UserService {
 	return &UserService{userRepository: userRepository}
 }
@@ -64,7 +60,7 @@ func (us *UserService) Login(userRequest UserRequestLogin) (*UserResponse, error
 
 func (us *UserService) GenerateToken(id uint, email string) (string, error) {
 
-	secret := os.Getenv(JWT_SECRET_KEY)
+	secret := os.Getenv("JWT_SECRET_KEY")
 
 	encryptEmail, err := bcrypt.GenerateFromPassword([]byte(email), bcrypt.DefaultCost)
 	if err != nil {
